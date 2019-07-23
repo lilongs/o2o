@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Controller
-@RequestMapping("/shop")
+@RequestMapping("/shopadmin")
 public class ShopManagementController {
     @Autowired
     private ShopService shopService;
