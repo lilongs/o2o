@@ -4,6 +4,7 @@ import com.demo.dto.ShopExecution;
 import com.demo.entity.PersonInfo;
 import com.demo.entity.Shop;
 import com.demo.enums.ShopStateEnum;
+import com.demo.exceptions.ShopOperationException;
 import com.demo.service.ShopService;
 import com.demo.util.HttpServletRequestUtil;
 import com.demo.util.ImageUtil;
@@ -57,29 +58,44 @@ public class ShopManagementController {
         //2.注册店铺
         if (shop != null && shopImg != null) {
             PersonInfo owner = new PersonInfo();
+            //getUser TODO
             owner.setUserId(1l);
             shop.setOwner(owner);
-            File shopImgFile = new File(PathUtil.getImgBasePath() + ImageUtil.getRandomFileName());
+
+//            File shopImgFile = new File(PathUtil.getImgBasePath() + ImageUtil.getRandomFileName());
+//            try {
+//                shopImgFile.createNewFile();
+//            } catch (IOException e) {
+//                modelMap.put("success", false);
+//                modelMap.put("errMsg", e.getMessage());
+//                return modelMap;
+//            }
+//            try {
+//                inputStreamToFile(shopImg.getInputStream(), shopImgFile);
+//            } catch (IOException e) {
+//                modelMap.put("success", false);
+//                modelMap.put("errMsg", e.getMessage());
+//                return modelMap;
+//            }
+//            ShopExecution se = shopService.addShop(shop, shopImgFile);
+
+            ShopExecution se = null;
             try {
-                shopImgFile.createNewFile();
+                se = shopService.addShop(shop, shopImg.getInputStream(), shopImg.getOriginalFilename());
+                if (se.getState() == ShopStateEnum.CHECK.getState()) {
+                    modelMap.put("success", true);
+                } else {
+                    modelMap.put("success", false);
+                    modelMap.put("errMsg", se.getStateInfo());
+                }
+            } catch (ShopOperationException e) {
+                modelMap.put("success", false);
+                modelMap.put("errMsg", e.getMessage());
+                return modelMap;
             } catch (IOException e) {
                 modelMap.put("success", false);
                 modelMap.put("errMsg", e.getMessage());
                 return modelMap;
-            }
-            try {
-                inputStreamToFile(shopImg.getInputStream(), shopImgFile);
-            } catch (IOException e) {
-                modelMap.put("success", false);
-                modelMap.put("errMsg", e.getMessage());
-                return modelMap;
-            }
-            ShopExecution se = shopService.addShop(shop, shopImgFile);
-            if (se.getState() == ShopStateEnum.CHECK.getState()) {
-                modelMap.put("success", true);
-            } else {
-                modelMap.put("success", false);
-                modelMap.put("errMsg", se.getStateInfo());
             }
             return modelMap;
         } else {

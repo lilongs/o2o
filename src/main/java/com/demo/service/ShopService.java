@@ -3,8 +3,8 @@ package com.demo.service;
 import com.demo.dto.ShopExecution;
 import com.demo.entity.Shop;
 
-import java.io.File;
+import java.io.InputStream;
 
 public interface ShopService {
-    ShopExecution addShop(Shop shop, File shopImg);
+    ShopExecution addShop(Shop shop, InputStream shopImgInputStream, String fileName);
 }
