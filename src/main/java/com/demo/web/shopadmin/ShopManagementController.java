@@ -1,11 +1,16 @@
 package com.demo.web.shopadmin;
 
 import com.demo.dto.ShopExecution;
+import com.demo.entity.Area;
 import com.demo.entity.PersonInfo;
 import com.demo.entity.Shop;
+import com.demo.entity.ShopCategory;
 import com.demo.enums.ShopStateEnum;
 import com.demo.exceptions.ShopOperationException;
+import com.demo.service.AreaService;
+import com.demo.service.ShopCategoryService;
 import com.demo.service.ShopService;
+import com.demo.util.CodeUtil;
 import com.demo.util.HttpServletRequestUtil;
 import com.demo.util.ImageUtil;
 import com.demo.util.PathUtil;
@@ -21,19 +26,46 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/shopadmin")
 public class ShopManagementController {
     @Autowired
     private ShopService shopService;
+    @Autowired
+    private ShopCategoryService shopCategoryService;
+    @Autowired
+    private AreaService areaService;
+
+    @RequestMapping(value = "/getshopinitinfo",method = RequestMethod.GET)
+    @ResponseBody
+    private Map<String,Object> getShopInitInfo(){
+        Map<String,Object> modelMap=new HashMap<>();
+        List<ShopCategory> shopCategoryList=new ArrayList<ShopCategory>();
+        List<Area> areaList=new ArrayList<Area>();
+        try {
+            shopCategoryList=shopCategoryService.getShopCategoryList(new ShopCategory());
+            areaList=areaService.getAreaList();
+            modelMap.put("shopCategoryList",shopCategoryList);
+            modelMap.put("areaList",areaList);
+            modelMap.put("success",true);
+        }catch (Exception ex){
+            modelMap.put("success",false);
+            modelMap.put("errMsg",ex.getMessage());
+        }
+        return modelMap;
+    }
 
     @RequestMapping(value = "registershop", method = RequestMethod.POST)
     @ResponseBody
     private Map<String, Object> registerShop(HttpServletRequest request) {
-        Map<String, Object> modelMap = new HashMap<>();
+       Map<String, Object> modelMap = new HashMap<>();
+       if(!CodeUtil.checkVerifyCode(request)){
+           modelMap.put("success", false);
+           modelMap.put("errMsg", "输入了错误的验证码");
+           return modelMap;
+       }
         //1.接收并转化相应的参数，包括店铺信息以及图片信息
         String shopStr = HttpServletRequestUtil.getString(request, "shopStr");
         ObjectMapper mapper = new ObjectMapper();
